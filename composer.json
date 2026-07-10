@@ -1,0 +1,17 @@
+{
+    "name": "vladislavmakarov/bitrix-hackathon-2026",
+    "autoload": {
+        "psr-4": {
+            "Vladislavmakarov\\BitrixHackathon2026\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Vladislav Makarov",
+            "email": "vomakarov1@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/tui": "^8.1"
+    }
+}
