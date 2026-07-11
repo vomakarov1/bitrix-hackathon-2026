@@ -24,7 +24,7 @@ final class PetPresentation
     public static function mood(int $satiety): array
     {
         return match (true) {
-            $satiety >= Constants::MOOD_HAPPY_AT => ['😋', 'сыт'],
+            $satiety >= Constants::MOOD_SATISFIED_AT => ['😋', 'сыт'],
             $satiety >= Constants::MOOD_OK_AT => ['🙂', 'норм'],
             $satiety >= Constants::MOOD_HUNGRY_AT => ['😟', 'голоден'],
             default => ['😫', 'очень голоден'],

@@ -5,6 +5,11 @@
             "Vladislavmakarov\\BitrixHackathon2026\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Vladislavmakarov\\BitrixHackathon2026\\Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Vladislav Makarov",

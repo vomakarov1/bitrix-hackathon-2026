@@ -5,33 +5,56 @@ declare(strict_types=1);
 namespace Vladislavmakarov\BitrixHackathon2026\Domain;
 
 /**
- * Контракт блока A (значения по DECOMPOSITION). Создан блоком B для автономной
- * сборки/тестов по §2.3 SDD-B; на интеграции владелец — A.
+ * Единое место всех тюнящихся значений домена.
+ * Магических чисел вне этого класса быть не должно.
  */
 final class Constants
 {
+    /** Стартовая сытость. */
     public const int INITIAL_SATIETY = 50;
-    public const int FEED_PER_SESSION = 15;
-    public const int STARVE_STEP = 10;
+
+    /** Потолок сытости; пол = 0. */
     public const int MAX_SATIETY = 100;
+
+    /** Базовая кормёжка за сессию. */
+    public const int FEED_PER_SESSION = 15;
+
+    /** Шаг голода за окно таймаута. */
+    public const int STARVE_STEP = 10;
+
+    /** Окно голодаемости, часы. */
     public const int STARVE_TIMEOUT_HOURS = 12;
+
+    /** TTL сессии, часы. */
     public const int SESSION_TTL_HOURS = 24;
 
+    /** Порог bestStreak для стадии 🐣 Hatchling. */
     public const int STAGE_HATCHLING_AT = 3;
+
+    /** Порог bestStreak для стадии 🦊 Beast. */
     public const int STAGE_BEAST_AT = 7;
+
+    /** Порог bestStreak для стадии 🐉 Legend. */
     public const int STAGE_LEGEND_AT = 14;
 
+    /** Шаг стрик-бонуса кормёжки. */
     public const int STREAK_FEED_STEP = 2;
+
+    /** Потолок стрик-бонуса. */
     public const int STREAK_BONUS_CAP = 10;
 
-    // Порог личного рекорда стрика (✨) в карточке/списке — §4.5 SDD-B, NIT ревью B4.
+    /** Минимальный стрик для отметки личного рекорда (✨) в карточке/списке — §4.5 SDD-B. */
     public const int STREAK_RECORD_MIN_DAYS = 3;
 
-    // Пороги настроения по satiety() — §4.5 SDD-B.
-    public const int MOOD_HAPPY_AT = 70;
-    public const int MOOD_OK_AT = 40;
-    public const int MOOD_HUNGRY_AT = 15;
+    /** usageCount на уровень (MVP-дефолт). */
+    public const int LEVEL_STEP = 10;
 
-    // Разумный дефолт: уровень растёт на 1 за каждые LEVEL_STEP использований.
-    public const int LEVEL_STEP = 20;
+    /** Порог сытости для 😋 «сыт». */
+    public const int MOOD_SATISFIED_AT = 70;
+
+    /** Порог сытости для 🙂 «норм». */
+    public const int MOOD_OK_AT = 40;
+
+    /** Порог сытости для 😟 «голоден»; ниже — 😫. */
+    public const int MOOD_HUNGRY_AT = 15;
 }

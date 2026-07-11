@@ -117,7 +117,7 @@ final class FakeCharacter implements CharacterInterface
     public function mood(): string
     {
         return match (true) {
-            $this->satiety >= Constants::MOOD_HAPPY_AT => 'сыт',
+            $this->satiety >= Constants::MOOD_SATISFIED_AT => 'сыт',
             $this->satiety >= Constants::MOOD_OK_AT => 'норм',
             $this->satiety >= Constants::MOOD_HUNGRY_AT => 'голоден',
             default => 'очень голоден',
