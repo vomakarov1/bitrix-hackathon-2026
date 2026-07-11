@@ -118,6 +118,13 @@
   .member.m2::before{background:linear-gradient(90deg,var(--amber),var(--pink))}
   .member.m3::before{background:linear-gradient(90deg,var(--violet),var(--blue))}
 
+  /* ---------- video ---------- */
+  .videobox{display:flex;justify-content:center}
+  .videobox video{
+    width:auto;max-width:100%;max-height:62vh;border-radius:16px;
+    border:1px solid var(--line);box-shadow:var(--shadow);background:#000;display:block;
+  }
+
   /* ---------- concept / mechanics cards ---------- */
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:clamp(14px,2vw,20px)}
   .card{
@@ -281,6 +288,19 @@
     </div>
   </section>
   <!-- ▲▲▲ конец блока команды ▲▲▲ -->
+
+  <!-- ============ 2.5 VIDEO ============ -->
+  <section class="slide" data-name="Видео">
+    <div class="wrap">
+      <div class="slide-head" style="text-align:center">
+        <span class="kicker">🎬 За кадром</span>
+        <h2>Как мы работали над проектом</h2>
+      </div>
+      <div class="videobox">
+        <video src="VID_20260711_121513.mp4" controls playsinline preload="metadata"></video>
+      </div>
+    </div>
+  </section>
 
   <!-- ============ 3. CONCEPT ============ -->
   <section class="slide" data-name="Идея">
@@ -536,7 +556,7 @@
 
 </div>
 
-<div class="counter"><b id="cur">1</b> / <span id="total">10</span> · <span id="sname">Вступление</span></div>
+<div class="counter"><b id="cur">1</b> / <span id="total">11</span> · <span id="sname">Вступление</span></div>
 <div class="dots" id="dots"></div>
 <div class="hint">← → или пробел для навигации · F — полноэкранный режим</div>
 <div class="nav">
@@ -572,6 +592,7 @@ let runToken=0;
 
 function go(n){
   idx=Math.max(0,Math.min(total-1,n));
+  document.querySelectorAll('video').forEach(v=>v.pause());
   slides.forEach((s,i)=>s.classList.toggle('active',i===idx));
   dots.forEach((d,i)=>d.classList.toggle('on',i===idx));
   fill.style.width=((idx+1)/total*100)+'%';
@@ -606,6 +627,8 @@ document.querySelectorAll('[data-replay]').forEach(b=>{
 
 // ---- animations ----
 async function playSlide(slide,token){
+  const vid=slide.querySelector('video');
+  if(vid){try{vid.currentTime=0;vid.play().catch(()=>{});}catch(e){}}
   const term=slide.querySelector('[data-anim="term"]');
   const menu=slide.querySelector('[data-anim="menu"]');
   // reset
