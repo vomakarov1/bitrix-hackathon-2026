@@ -1,0 +1,167 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__.'/../vendor/autoload.php';
+
+use Vladislavmakarov\BitrixHackathon2026\App\CharacterService;
+use Vladislavmakarov\BitrixHackathon2026\App\FeedingService;
+use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeCharacterFactory;
+use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeClock;
+use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakePaths;
+use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeRepository;
+use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeSessionStore;
+use Vladislavmakarov\BitrixHackathon2026\Integration\ErrorLog;
+use Vladislavmakarov\BitrixHackathon2026\Integration\HookHandlers;
+use Vladislavmakarov\BitrixHackathon2026\Integration\HooksInstaller;
+use Vladislavmakarov\BitrixHackathon2026\Integration\PetConsoleView;
+use Vladislavmakarov\BitrixHackathon2026\Integration\PetListView;
+use Vladislavmakarov\BitrixHackathon2026\Integration\SkillCatalog;
+
+// §2.3 SDD-B: composition root на Fake* -> реальные классы A на интеграции
+// (тайп-хинты сервисов B — на интерфейсы, поэтому меняются только new-конструкции).
+$clock = new FakeClock(new DateTimeImmutable());
+$paths = new FakePaths();
+$repo = new FakeRepository();
+$sessions = new FakeSessionStore();
+$charFac = new FakeCharacterFactory($clock);
+$catalog = new SkillCatalog($paths);
+$feeding = new FeedingService($repo, $sessions, $clock);
+$charSvc = new CharacterService($repo, $catalog, $charFac);
+$view = new PetConsoleView();
+$listView = new PetListView();
+$log = new ErrorLog($paths);
+$hooks = new HookHandlers($feeding, $sessions, $view, $clock, $log);
+$installer = new HooksInstaller($paths);
+
+/** @param string[] $args */
+function tamagotchi_parse_flags(array $args): array
+{
+    $flags = [];
+    foreach ($args as $arg) {
+        if (!str_starts_with($arg, '--')) {
+            continue;
+        }
+        $pair = substr($arg, 2);
+        [$key, $value] = str_contains($pair, '=') ? explode('=', $pair, 2) : [$pair, ''];
+        $flags[$key] = $value;
+    }
+
+    return $flags;
+}
+
+function tamagotchi_help(): string
+{
+    return <<<'TEXT'
+    Тамагочи для кодового агента — консольная утилита.
+
+    Использование: tamagotchi <команда> [аргументы]
+
+    Команды:
+      (нет команды)                                запустить TUI (блок C)
+      setup                                         установить хуки Claude Code в settings.json
+      list                                          показать список питомцев
+      create --skill=<s> --name=<n> [--type=<t>]    создать питомца
+      delete <id>                                   удалить питомца
+      hook:tool-use                                 внутренний обработчик хука PostToolUse
+      hook:session-end                              внутренний обработчик хука SessionEnd
+      help                                          показать эту справку
+
+    TEXT;
+}
+
+$command = $argv[1] ?? null;
+
+switch ($command) {
+    case 'setup':
+        try {
+            $installer->install((string) realpath(__FILE__));
+            fwrite(STDOUT, "Хуки установлены.\n");
+            exit(0);
+        } catch (Throwable $e) {
+            fwrite(STDERR, 'setup: '.$e->getMessage()."\n");
+            exit(1);
+        }
+
+    case 'list':
+        $pets = $repo->all();
+        if ($pets === []) {
+            fwrite(STDOUT, "Питомцев пока нет. Заведи: bin/tamagotchi create --skill=<skill> --name=<имя>\n");
+            exit(0);
+        }
+        fwrite(STDOUT, $listView->renderList($pets, $clock->today()));
+        exit(0);
+
+    case 'create':
+        $flags = tamagotchi_parse_flags(array_slice($argv, 2));
+        $skill = trim($flags['skill'] ?? '');
+        $name = trim($flags['name'] ?? '');
+        $type = $flags['type'] ?? null;
+
+        if ($skill === '') {
+            fwrite(STDERR, "create: укажи скилл через --skill=<skill>\n");
+            exit(1);
+        }
+        // §9.2 OQ-N1: имя обязательно в CLI (без дефолта из скилла).
+        if ($name === '') {
+            fwrite(STDERR, "create: укажи имя питомца через --name=<имя>\n");
+            exit(1);
+        }
+
+        // §9.2 OQ-N2: валидация скилла мягкая — предупреждение, не отказ.
+        $knownSkills = $catalog->all();
+        if ($knownSkills !== [] && !in_array($skill, $knownSkills, true)) {
+            fwrite(STDOUT, sprintf("⚠️  Скилл «%s» не найден среди локальных скиллов — питомца всё равно создаю.\n", $skill));
+        }
+
+        try {
+            $pet = $charSvc->create($name, $skill, $type);
+            fwrite(STDOUT, sprintf("🎉 Питомец «%s» создан (скилл: %s, id: %s).\n", $pet->name(), $pet->skill(), $pet->id()));
+            exit(0);
+        } catch (Throwable $e) {
+            fwrite(STDERR, 'create: '.$e->getMessage()."\n");
+            exit(1);
+        }
+
+    case 'delete':
+        $id = $argv[2] ?? null;
+        if ($id === null) {
+            fwrite(STDERR, "delete: нужен id питомца\n");
+            exit(1);
+        }
+        try {
+            $charSvc->delete($id);
+            fwrite(STDOUT, "Питомец удалён.\n");
+            exit(0);
+        } catch (Throwable $e) {
+            fwrite(STDERR, 'delete: '.$e->getMessage()."\n");
+            exit(1);
+        }
+
+    case 'hook:tool-use':
+        exit($hooks->handleToolUse());
+
+    case 'hook:session-end':
+        exit($hooks->handleSessionEnd());
+
+    case 'help':
+        fwrite(STDOUT, tamagotchi_help());
+        exit(0);
+
+    case null:
+        // §4.8 SDD-B: без аргументов -> TUI (блок C). Точку входа MenuApp здесь
+        // не реализуем (зона C) — только дружелюбный фолбэк, пока TUI не готов.
+        $menuAppClass = 'Vladislavmakarov\\BitrixHackathon2026\\Tui\\MenuApp';
+        if (class_exists($menuAppClass)) {
+            fwrite(STDERR, "TUI обнаружен, но точка входа роутером ещё не подключена (согласовать с блоком C).\n");
+            exit(1);
+        }
+        fwrite(STDOUT, "TUI ещё не готов (блок C). Доступные команды — см. `tamagotchi help`.\n");
+        exit(0);
+
+    default:
+        fwrite(STDERR, sprintf("Неизвестная команда: %s\n\n", $command));
+        fwrite(STDERR, tamagotchi_help());
+        exit(1);
+}
