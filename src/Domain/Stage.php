@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Vladislavmakarov\BitrixHackathon2026\Domain;
 
+use Vladislavmakarov\BitrixHackathon2026\App\Contracts\StageInterface;
+use Vladislavmakarov\BitrixHackathon2026\Tui\Contract\StageView;
+
 /**
  * Стадии эволюции персонажа. Стадия — чистая функция bestStreak; эволюция необратима.
  * Пороги берутся из Constants (STAGE_HATCHLING_AT/BEAST_AT/LEGEND_AT).
  */
-enum Stage
+enum Stage implements StageInterface, StageView
 {
     case Egg;
     case Hatchling;
@@ -36,6 +39,17 @@ enum Stage
             self::Hatchling => '🐣',
             self::Beast => '🦊',
             self::Legend => '🐉',
+        };
+    }
+
+    /** Человекочитаемая метка стадии. */
+    public function label(): string
+    {
+        return match ($this) {
+            self::Egg => 'яйцо',
+            self::Hatchling => 'детёныш',
+            self::Beast => 'зверь',
+            self::Legend => 'легенда',
         };
     }
 

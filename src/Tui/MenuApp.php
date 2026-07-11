@@ -15,6 +15,7 @@ use Vladislavmakarov\BitrixHackathon2026\Tui\Screen\DeletePetScreen;
 use Vladislavmakarov\BitrixHackathon2026\Tui\Screen\MainMenuScreen;
 use Vladislavmakarov\BitrixHackathon2026\Tui\Screen\PetListScreen;
 use Vladislavmakarov\BitrixHackathon2026\Tui\Screen\ScreenInterface;
+use Vladislavmakarov\BitrixHackathon2026\Tui\Screen\SetupScreen;
 
 /**
  * Точка входа TUI-слоя. В non-TTY окружении делегирует в PlainRenderer.
@@ -30,6 +31,11 @@ class MenuApp
     private readonly PetPresenter $presenter;
     private readonly TypeCatalog $typeCatalog;
 
+    /**
+     * @param ?\Closure(): string $setupHooks Устанавливает хуки кодового агента и возвращает
+     *                                         результат (владелец — блок B: HooksInstaller).
+     *                                         null → пункт установки в меню скрыт.
+     */
     public function __construct(
         private readonly CharacterRepositoryInterface $characterRepository,
         private readonly CharacterServiceInterface $characterService,
@@ -37,6 +43,7 @@ class MenuApp
         private readonly ClockInterface $clock,
         ?PetPresenter $presenter = null,
         ?TypeCatalog $typeCatalog = null,
+        private readonly ?\Closure $setupHooks = null,
     ) {
         $this->presenter = $presenter ?? new PetPresenter();
         $this->typeCatalog = $typeCatalog ?? new TypeCatalog();
@@ -69,11 +76,10 @@ class MenuApp
     {
         $tui = $this->createTui();
 
-        if ([] === $this->characterRepository->all()) {
-            $this->showCreatePetScreen($tui);
-        } else {
-            $this->showMainMenuScreen($tui);
-        }
+        // Приземляемся в главное меню всегда: даже без питомцев пользователю
+        // нужен доступ к установке хуков кодового агента (иначе интеграция
+        // недостижима из TUI). Создание питомца — пункт этого же меню.
+        $this->showMainMenuScreen($tui);
 
         $tui->run();
 
@@ -96,6 +102,7 @@ class MenuApp
             onExit: static function () use ($tui): void {
                 $tui->stop();
             },
+            setupAvailable: null !== $this->setupHooks,
         );
 
         $this->showScreen($tui, $screen);
@@ -107,9 +114,24 @@ class MenuApp
             'list' => $this->showPetListScreen($tui),
             'create' => $this->showCreatePetScreen($tui),
             'delete' => $this->showDeletePetScreen($tui),
+            'setup' => $this->showSetupScreen($tui),
             'quit' => $tui->stop(),
             default => null,
         };
+    }
+
+    private function showSetupScreen(Tui $tui): void
+    {
+        $runSetup = $this->setupHooks ?? static fn (): string => 'Установка хуков недоступна в этой сборке.';
+
+        $screen = new SetupScreen(
+            runSetup: $runSetup,
+            onBack: function () use ($tui): void {
+                $this->showMainMenuScreen($tui);
+            },
+        );
+
+        $this->showScreen($tui, $screen);
     }
 
     private function showPetListScreen(Tui $tui): void

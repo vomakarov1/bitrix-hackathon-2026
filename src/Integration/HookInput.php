@@ -41,12 +41,18 @@ final class HookInput
         return is_string($value) ? $value : null;
     }
 
-    /** Bare-имя каталога скилла из `tool_input.skill` (Р10 ADR). */
+    /**
+     * Bare-имя скилла из `tool_input.skill`.
+     *
+     * Сверено с живым payload Claude Code (2026-07-11): при вызове скилла
+     * `tool_name` == "Skill", а имя скилла лежит в `tool_input.skill`
+     * (напр. `{"tool_name":"Skill","tool_input":{"skill":"maestro"}}`).
+     */
     public function skill(): ?string
     {
         $value = $this->payload['tool_input']['skill'] ?? null;
 
-        return is_string($value) ? $value : null;
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     public function isSkillTool(): bool

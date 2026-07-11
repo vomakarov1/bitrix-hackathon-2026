@@ -5,34 +5,35 @@ declare(strict_types=1);
 
 require __DIR__.'/../vendor/autoload.php';
 
+use Vladislavmakarov\BitrixHackathon2026\App\CharacterFactory;
 use Vladislavmakarov\BitrixHackathon2026\App\CharacterService;
 use Vladislavmakarov\BitrixHackathon2026\App\FeedingService;
-use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeCharacterFactory;
-use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeClock;
-use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakePaths;
-use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeRepository;
-use Vladislavmakarov\BitrixHackathon2026\App\Stub\FakeSessionStore;
 use Vladislavmakarov\BitrixHackathon2026\Integration\ErrorLog;
 use Vladislavmakarov\BitrixHackathon2026\Integration\HookHandlers;
 use Vladislavmakarov\BitrixHackathon2026\Integration\HooksInstaller;
 use Vladislavmakarov\BitrixHackathon2026\Integration\PetConsoleView;
 use Vladislavmakarov\BitrixHackathon2026\Integration\PetListView;
 use Vladislavmakarov\BitrixHackathon2026\Integration\SkillCatalog;
+use Vladislavmakarov\BitrixHackathon2026\Storage\CharacterRepository;
+use Vladislavmakarov\BitrixHackathon2026\Storage\Paths;
+use Vladislavmakarov\BitrixHackathon2026\Storage\SessionStore;
+use Vladislavmakarov\BitrixHackathon2026\Storage\SystemClock;
+use Vladislavmakarov\BitrixHackathon2026\Tui\MenuApp;
 
-// §2.3 SDD-B: composition root на Fake* -> реальные классы A на интеграции
-// (тайп-хинты сервисов B — на интерфейсы, поэтому меняются только new-конструкции).
-$clock = new FakeClock(new DateTimeImmutable());
-$paths = new FakePaths();
-$repo = new FakeRepository();
-$sessions = new FakeSessionStore();
-$charFac = new FakeCharacterFactory($clock);
-$catalog = new SkillCatalog($paths);
-$feeding = new FeedingService($repo, $sessions, $clock);
-$charSvc = new CharacterService($repo, $catalog, $charFac);
-$view = new PetConsoleView();
-$listView = new PetListView();
-$log = new ErrorLog($paths);
-$hooks = new HookHandlers($feeding, $sessions, $view, $clock, $log);
+// §2.3 SDD-B (path 1): composition root на РЕАЛЬНЫХ классах блока A —
+// сервисы B тайп-хинтят интерфейсы, реальные классы их реализуют.
+$clock     = new SystemClock();
+$paths     = new Paths();
+$repo      = new CharacterRepository($paths->dataDir());
+$sessions  = new SessionStore($paths->dataDir());
+$charFac   = new CharacterFactory($clock);
+$catalog   = new SkillCatalog($paths);
+$feeding   = new FeedingService($repo, $sessions, $clock, $charFac);
+$charSvc   = new CharacterService($repo, $catalog, $charFac);
+$view      = new PetConsoleView();
+$listView  = new PetListView();
+$log       = new ErrorLog($paths);
+$hooks     = new HookHandlers($feeding, $sessions, $view, $clock, $log);
 $installer = new HooksInstaller($paths);
 
 /** @param string[] $args */
@@ -150,15 +151,24 @@ switch ($command) {
         exit(0);
 
     case null:
-        // §4.8 SDD-B: без аргументов -> TUI (блок C). Точку входа MenuApp здесь
-        // не реализуем (зона C) — только дружелюбный фолбэк, пока TUI не готов.
-        $menuAppClass = 'Vladislavmakarov\\BitrixHackathon2026\\Tui\\MenuApp';
-        if (class_exists($menuAppClass)) {
-            fwrite(STDERR, "TUI обнаружен, но точка входа роутером ещё не подключена (согласовать с блоком C).\n");
-            exit(1);
-        }
-        fwrite(STDOUT, "TUI ещё не готов (блок C). Доступные команды — см. `tamagotchi help`.\n");
-        exit(0);
+        // §4.8 SDD-B: без аргументов -> TUI (блок C). MenuApp::run() сам решает
+        // TTY/non-TTY (в non-TTY делегирует в PlainRenderer).
+        // Установку хуков кодового агента отдаём в TUI отдельным пунктом меню:
+        // MenuApp получает колбэк, который зовёт HooksInstaller (блок B).
+        $binPath = (string) realpath(__FILE__);
+        $setupHooks = static function () use ($installer, $binPath): string {
+            try {
+                $installer->install($binPath);
+
+                return '✅ Хуки установлены в settings.json.'."\n"
+                    .'Перезапусти сессию Claude Code — после этого каждое использование'."\n"
+                    .'скилла будет кормить питомца, а конец сессии подводить итог.';
+            } catch (Throwable $e) {
+                return '⚠️ Не удалось установить хуки: '.$e->getMessage();
+            }
+        };
+        $menuApp = new MenuApp($repo, $charSvc, $catalog, $clock, null, null, $setupHooks);
+        exit($menuApp->run());
 
     default:
         fwrite(STDERR, sprintf("Неизвестная команда: %s\n\n", $command));

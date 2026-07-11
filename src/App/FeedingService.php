@@ -20,23 +20,37 @@ final class FeedingService
         private readonly CharacterRepositoryInterface $repo,
         private readonly SessionStoreInterface $sessions,
         private readonly ClockInterface $clock,
+        private readonly CharacterFactory $factory,
     ) {
     }
 
     /** Путь hook:tool-use. Возвращает обновлённого питомца на успех, иначе null. */
     public function recordSkillUsage(string $sessionId, string $skill): ?CharacterInterface
     {
+        // Дешёвый пред-чек без блокировки: если питомца с этим скиллом нет,
+        // сразу выходим, чтобы не лочить и не переписывать characters.json
+        // вхолостую (скилл использован, но питомец к нему не привязан).
+        if ($this->repo->findBySkill($skill) === null) {
+            return null;
+        }
+
         $found = null;
 
-        $this->repo->mutate(function (array &$characters) use ($skill, &$found): void {
-            foreach ($characters as $character) {
+        // Контракт CharacterRepository::mutate (К2): колбэк получает «сырые»
+        // записи и возвращает новый массив записей. Гидрируем каждую запись в
+        // доменный объект, мутируем, сериализуем обратно.
+        $this->repo->mutate(function (array $records) use ($skill, &$found): array {
+            foreach ($records as $i => $record) {
+                $character = $this->factory->fromArray($record);
                 if ($character->skill() === $skill) {
                     $character->recordUsage();
                     $found = $character;
-
-                    return;
+                    $records[$i] = $character->toArray();
+                    break;
                 }
             }
+
+            return $records;
         });
 
         if ($found === null) {
@@ -55,8 +69,10 @@ final class FeedingService
         $now = $this->clock->now();
         $today = $this->clock->today();
 
-        $this->repo->mutate(function (array &$characters) use ($used, $now, $today): void {
-            foreach ($characters as $character) {
+        $this->repo->mutate(function (array $records) use ($used, $now, $today): array {
+            foreach ($records as $i => $record) {
+                $character = $this->factory->fromArray($record);
+
                 if (in_array($character->skill(), $used, true)) {
                     $character->registerActiveDay($today);
                     $bonus = min($character->liveStreak($today), Constants::STREAK_BONUS_CAP) * Constants::STREAK_FEED_STEP;
@@ -64,7 +80,11 @@ final class FeedingService
                 } elseif ($character->isStarvable($now)) {
                     $character->starve(Constants::STARVE_STEP, $now);
                 }
+
+                $records[$i] = $character->toArray();
             }
+
+            return $records;
         });
 
         $this->sessions->clear($sessionId);

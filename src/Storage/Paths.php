@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Vladislavmakarov\BitrixHackathon2026\Storage;
 
+use Vladislavmakarov\BitrixHackathon2026\App\Contracts\PathsInterface;
+
 /**
  * Резолв путей конфигурации и данных с env-override (К4).
  *
  * Paths ТОЛЬКО вычисляет пути и ничего не создаёт на диске (без side effects).
  * Существование каталогов обеспечивают потребители (см. P3/setup).
  */
-final class Paths
+final class Paths implements PathsInterface
 {
     /**
      * Каталог конфигурации Claude: CLAUDE_CONFIG_DIR | ~/.claude.

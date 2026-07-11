@@ -21,19 +21,26 @@ final class MainMenuScreen implements ScreenInterface
     private readonly SelectListWidget $select;
 
     /**
-     * @param \Closure(string): void $onNavigate Вызывается с value выбранного пункта.
-     * @param \Closure(): void       $onExit     Вызывается при отмене (Esc/Ctrl+C).
+     * @param \Closure(string): void $onNavigate    Вызывается с value выбранного пункта.
+     * @param \Closure(): void       $onExit        Вызывается при отмене (Esc/Ctrl+C).
+     * @param bool                   $setupAvailable Показывать ли пункт установки хуков кодового агента.
      */
     public function __construct(
         private readonly \Closure $onNavigate,
         private readonly \Closure $onExit,
+        bool $setupAvailable = false,
     ) {
-        $this->select = new SelectListWidget([
+        $items = [
             ['value' => 'list', 'label' => 'Мои питомцы'],
             ['value' => 'create', 'label' => 'Создать питомца'],
             ['value' => 'delete', 'label' => 'Удалить питомца'],
-            ['value' => 'quit', 'label' => 'Выход'],
-        ]);
+        ];
+        if ($setupAvailable) {
+            $items[] = ['value' => 'setup', 'label' => 'Установить хуки для кодового агента'];
+        }
+        $items[] = ['value' => 'quit', 'label' => 'Выход'];
+
+        $this->select = new SelectListWidget($items);
 
         $this->select->onSelect(function (SelectEvent $event): void {
             ($this->onNavigate)($event->getValue());

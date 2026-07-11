@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Vladislavmakarov\BitrixHackathon2026\Storage;
 
+use Vladislavmakarov\BitrixHackathon2026\App\Contracts\SessionStoreInterface;
+
 /**
  * Хранилище состояния сессий (К3).
  *
@@ -14,7 +16,7 @@ namespace Vladislavmakarov\BitrixHackathon2026\Storage;
  * на отдельном lock-файле `sessions.json.lock`, чтение, применение колбэка,
  * атомарная запись через temp-файл в dataDir + rename(), снятие лока.
  */
-final class SessionStore
+final class SessionStore implements SessionStoreInterface
 {
     private const string FILE_NAME = 'sessions.json';
 

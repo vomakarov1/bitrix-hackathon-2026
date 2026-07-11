@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Vladislavmakarov\BitrixHackathon2026\Integration;
 
 use Vladislavmakarov\BitrixHackathon2026\App\Contracts\PathsInterface;
+use Vladislavmakarov\BitrixHackathon2026\Tui\Contract\SkillCatalogInterface;
 
 /**
  * Перечень доступных локальных скиллов (bare-имена). Владеет К5 (§4.4 SDD-B).
  */
-final class SkillCatalog
+final class SkillCatalog implements SkillCatalogInterface
 {
     public function __construct(private readonly PathsInterface $paths)
     {

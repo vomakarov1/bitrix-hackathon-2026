@@ -75,12 +75,16 @@ final class HookHandlers
     }
 
     /**
-     * §4.6.1: JSON-конверт хука — карточка попадает и в контекст Claude
-     * (`hookSpecificOutput.additionalContext`), и в кандидат на прямой показ
-     * пользователю (`systemMessage`). Финальный выбор поля — по живому чеку B6.
+     * §4.6.1 (сверено с доками Claude Code 2026-07-11): пользователю виден
+     * ТОЛЬКО корневой `systemMessage` (чистый stdout при exit 0 уходит лишь в
+     * debug-лог). `hookSpecificOutput.additionalContext` — для контекста Claude.
+     * `suppressOutput: true` убирает дублирование карточки в debug-лог/транскрипт.
      */
     private function emitCard(string $card): string
     {
+        // systemMessage — единственный канал, который Claude Code показывает
+        // ПОЛЬЗОВАТЕЛЮ. additionalContext дублирует карточку в контекст Claude.
+        // suppressOutput НЕ ставим: он может скрывать в т.ч. systemMessage.
         return json_encode([
             'systemMessage' => $card,
             'hookSpecificOutput' => [

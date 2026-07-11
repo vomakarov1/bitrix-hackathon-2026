@@ -36,6 +36,7 @@ final class PlainRenderer
             }
         }
 
-        echo "Интерактивное меню требует TTY; используйте CLI-команды list/create/delete.\n";
+        echo "Интерактивное меню требует TTY; используйте CLI-команды setup/list/create/delete.\n";
+        echo "Подключить питомца к кодовому агенту: bin/tamagotchi setup\n";
     }
 }

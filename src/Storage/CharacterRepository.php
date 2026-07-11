@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Vladislavmakarov\BitrixHackathon2026\Storage;
 
+use Vladislavmakarov\BitrixHackathon2026\App\Contracts\CharacterInterface;
+use Vladislavmakarov\BitrixHackathon2026\App\Contracts\CharacterRepositoryInterface as AppCharacterRepositoryInterface;
 use Vladislavmakarov\BitrixHackathon2026\Domain\Character;
+use Vladislavmakarov\BitrixHackathon2026\Tui\Contract\CharacterRepositoryInterface as TuiCharacterRepositoryInterface;
 
 /**
  * Хранилище персонажей (К2).
@@ -18,7 +21,7 @@ use Vladislavmakarov\BitrixHackathon2026\Domain\Character;
  * т.к. на Windows rename() поверх открытого/залоченного файла падает;
  * отдельный lock-файл снимает эту проблему на POSIX и Windows одинаково.
  */
-final class CharacterRepository
+final class CharacterRepository implements AppCharacterRepositoryInterface, TuiCharacterRepositoryInterface
 {
     private const string FILE_NAME = 'characters.json';
 
@@ -63,7 +66,7 @@ final class CharacterRepository
     }
 
     /** Сохраняет персонажа (insert/update по id); throws при дубле skill у другого id. */
-    public function save(Character $character): void
+    public function save(CharacterInterface $character): void
     {
         $this->mutate(static function (array $records) use ($character): array {
             $newRecord = $character->toArray();

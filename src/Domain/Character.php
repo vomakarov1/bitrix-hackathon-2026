@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Vladislavmakarov\BitrixHackathon2026\Domain;
 
+use Vladislavmakarov\BitrixHackathon2026\App\Contracts\CharacterInterface;
+use Vladislavmakarov\BitrixHackathon2026\Tui\Contract\CharacterView;
+
 /**
  * Персонаж-тамагочи (К1).
  *
@@ -15,7 +18,7 @@ namespace Vladislavmakarov\BitrixHackathon2026\Domain;
  * lastUsedDate — чистая календарная дата (YYYY-MM-DD), хранится как строка,
  * т.к. сравнивается только по календарю (см. ALG-01/ALG-02), а не по времени.
  */
-final class Character
+final class Character implements CharacterInterface, CharacterView
 {
     private string $id;
 
@@ -172,6 +175,11 @@ final class Character
     public function skill(): string
     {
         return $this->skill;
+    }
+
+    public function type(): ?string
+    {
+        return $this->type;
     }
 
     public function satiety(): int

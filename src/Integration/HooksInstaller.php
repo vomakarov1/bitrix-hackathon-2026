@@ -25,6 +25,10 @@ final class HooksInstaller
         $settingsPath = $this->paths->settingsPath();
         $settings = $this->readSettings($settingsPath);
 
+        // matcher PostToolUse == "Skill": сверено с живым payload (2026-07-11) —
+        // при вызове скилла tool_name == "Skill", имя скилла в tool_input.skill.
+        // Так хук срабатывает ТОЛЬКО на использование скиллов, а не на каждый
+        // инструмент (Bash/Read/…), — без лишнего оверхеда.
         $this->ensureHookEntry($settings, 'PostToolUse', 'Skill', $cmdTool, $binPath, 'hook:tool-use');
         $this->ensureHookEntry($settings, 'SessionEnd', '', $cmdEnd, $binPath, 'hook:session-end');
 
@@ -76,11 +80,16 @@ final class HooksInstaller
             $entries = [];
         }
 
-        foreach ($entries as $entry) {
+        foreach ($entries as $index => $entry) {
             $hooks = is_array($entry) ? ($entry['hooks'] ?? []) : [];
             foreach ((array) $hooks as $hook) {
                 $existing = is_array($hook) ? (string) ($hook['command'] ?? '') : '';
                 if (str_contains($existing, $binPath) && str_contains($existing, $suffix)) {
+                    // Наша запись уже есть — актуализируем matcher (миграция
+                    // старого "Skill" -> "" при повторном setup), команду не трогаем.
+                    $entries[$index]['matcher'] = $matcher;
+                    $settings['hooks'][$event] = $entries;
+
                     return;
                 }
             }
