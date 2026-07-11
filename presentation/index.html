@@ -166,6 +166,7 @@
     padding:clamp(14px,2vw,22px);white-space:pre;overflow-x:auto;min-height:60px;color:#d7e2f0;
   }
   .term-body .line{white-space:pre}
+  .term.tight .term-body{line-height:1.28;font-size:clamp(.72rem,1vw,.88rem);padding:clamp(10px,1.3vw,14px) clamp(14px,2vw,20px)}
   .prompt{color:var(--green)}
   .prompt::after{content:" "}
   .type{color:#eaf2ff}
@@ -317,14 +318,12 @@
         <h2>Консольная утилита <code style="font-family:var(--mono);color:var(--green)">bin/tamagotchi</code></h2>
       </div>
       <div class="demo split">
-        <div class="term" data-anim="term">
+        <div class="term tight" data-anim="term">
           <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">zsh — bitrix-hackathon-2026</span></div>
           <div class="term-body">
 <div class="line" data-role="cmd"><span class="prompt">$</span><span class="type">php bin/tamagotchi help</span></div>
 <div class="line" data-role="out">Тамагочи для кодового агента — консольная утилита.</div>
-<div class="line" data-role="out"> </div>
 <div class="line" data-role="out">Использование: tamagotchi &lt;команда&gt; [аргументы]</div>
-<div class="line" data-role="out"> </div>
 <div class="line" data-role="out">Команды:</div>
 <div class="line" data-role="out">  <span class="c-green">setup</span>     установить хуки Claude Code в settings.json</div>
 <div class="line" data-role="out">  <span class="c-green">list</span>      показать список питомцев</div>
