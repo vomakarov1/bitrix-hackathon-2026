@@ -109,13 +109,14 @@
     display:flex;flex-direction:column;gap:.35em;position:relative;overflow:hidden;
   }
   .member::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,var(--green),var(--blue))}
-  .member .ava{font-size:2.4rem;margin-bottom:.15em}
-  .member .name{font-weight:700;font-size:1.15rem}
-  .member .role{font-family:var(--mono);font-size:.85rem;color:var(--amber)}
-  .member .who{color:var(--muted);font-size:.92rem;line-height:1.4;margin-top:.3em}
+  .member{align-items:center;text-align:center}
+  .member .photo{
+    width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:16px;display:block;
+    margin-bottom:.9em;border:1px solid var(--line);background:var(--panel2);
+  }
+  .member .name{font-weight:700;font-size:1.2rem}
   .member.m2::before{background:linear-gradient(90deg,var(--amber),var(--pink))}
   .member.m3::before{background:linear-gradient(90deg,var(--violet),var(--blue))}
-  .member.m4::before{background:linear-gradient(90deg,var(--pink),var(--green))}
 
   /* ---------- concept / mechanics cards ---------- */
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:clamp(14px,2vw,20px)}
@@ -264,28 +265,16 @@
       </div>
       <div class="team-grid">
         <div class="member m1">
-          <div class="ava">🧑‍💻</div>
-          <div class="name">Имя Фамилия</div>
-          <div class="role">Роль в команде</div>
-          <div class="who">Блок A · домен, хранилище, Clock</div>
+          <img class="photo" src="Vinnikov.jpg" alt="Кирилл Винников">
+          <div class="name">Кирилл Винников</div>
         </div>
         <div class="member m2">
-          <div class="ava">🧑‍💻</div>
-          <div class="name">Имя Фамилия</div>
-          <div class="role">Роль в команде</div>
-          <div class="who">Блок B · интеграция с агентом, хуки, CLI</div>
+          <img class="photo" src="Makarov.jpg" alt="Владислав Макаров">
+          <div class="name">Владислав Макаров</div>
         </div>
         <div class="member m3">
-          <div class="ava">🧑‍💻</div>
-          <div class="name">Имя Фамилия</div>
-          <div class="role">Роль в команде</div>
-          <div class="who">Блок C · TUI-меню, презентация питомца</div>
-        </div>
-        <div class="member m4">
-          <div class="ava">🧑‍💻</div>
-          <div class="name">Имя Фамилия</div>
-          <div class="role">Роль в команде</div>
-          <div class="who">Продукт · идея, дизайн механик, координация</div>
+          <img class="photo" src="Kharymov.jpg" alt="Алексей Харымов">
+          <div class="name">Алексей Харымов</div>
         </div>
       </div>
     </div>
