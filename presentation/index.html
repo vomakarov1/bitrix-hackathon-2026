@@ -337,7 +337,7 @@
         <span class="kicker">▶ Демо 1</span>
         <h2>Консольная утилита <code style="font-family:var(--mono);color:var(--green)">bin/tamagotchi</code></h2>
       </div>
-      <div class="demo split">
+      <div class="demo split" style="grid-template-columns:1.45fr .75fr">
         <div class="term tight" data-anim="term">
           <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">zsh — bitrix-hackathon-2026</span></div>
           <div class="term-body">
@@ -345,12 +345,13 @@
 <div class="line" data-role="out">Тамагочи для кодового агента — консольная утилита.</div>
 <div class="line" data-role="out">Использование: tamagotchi &lt;команда&gt; [аргументы]</div>
 <div class="line" data-role="out">Команды:</div>
-<div class="line" data-role="out">  <span class="c-green">setup</span>     установить хуки Claude Code в settings.json</div>
-<div class="line" data-role="out">  <span class="c-green">list</span>      показать список питомцев</div>
-<div class="line" data-role="out">  <span class="c-green">create</span>    завести питомца (--skill --name --type)</div>
-<div class="line" data-role="out">  <span class="c-green">delete</span>    удалить питомца по id</div>
-<div class="line" data-role="out">  <span class="c-green">hook:*</span>    обработчики хуков агента</div>
-<div class="line" data-role="out">  <span class="c-green">help</span>      показать эту справку</div>
+<div class="line" data-role="out">  <span class="c-muted">(без команды)</span>      запустить TUI (блок C)</div>
+<div class="line" data-role="out">  <span class="c-green">setup</span>              установить хуки Claude Code</div>
+<div class="line" data-role="out">  <span class="c-green">list</span>               показать список питомцев</div>
+<div class="line" data-role="out">  <span class="c-green">create</span>             завести питомца (--skill --name --type)</div>
+<div class="line" data-role="out">  <span class="c-green">delete</span>             удалить питомца по id</div>
+<div class="line" data-role="out">  <span class="c-green">hook:*</span>             хуки агента: PostToolUse / UserPromptSubmit / SessionEnd</div>
+<div class="line" data-role="out">  <span class="c-green">help</span>               показать эту справку</div>
           </div>
         </div>
         <div class="demo-note">
@@ -370,7 +371,7 @@
         <span class="kicker">▶ Демо 2</span>
         <h2>Заводим питомца</h2>
       </div>
-      <div class="demo split">
+      <div class="demo split" style="grid-template-columns:1.45fr .75fr">
         <div class="term" data-anim="term">
           <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">zsh — создание питомца</span></div>
           <div class="term-body">
@@ -411,16 +412,18 @@
             <li data-i="0">Мои питомцы</li>
             <li data-i="1">Создать питомца</li>
             <li data-i="2">Удалить питомца</li>
-            <li data-i="3">Выход</li>
+            <li data-i="3">Установить хуки для кодового агента</li>
+            <li data-i="4">Выход</li>
           </ul>
         </div>
         <div class="demo-note">
           <h3>Полноценный терминальный интерфейс</h3>
-          <p>Запуск <code>bin/tamagotchi-demo.php</code> в терминале открывает меню на <code>symfony/tui</code>. Навигация стрелками <b>↑/↓</b>, выбор — <b>Enter</b>, назад — <b>Esc</b>.</p>
+          <p>Запуск <code>bin/tamagotchi</code> без аргументов открывает меню на <code>symfony/tui</code>. Навигация стрелками <b>↑/↓</b>, выбор — <b>Enter</b>, назад — <b>Esc</b>.</p>
           <ul>
             <li>Мои питомцы · карточки состояния</li>
             <li>Создать · мастер «скилл → имя → тип»</li>
             <li>Удалить · с экраном подтверждения</li>
+            <li>Установить хуки · интеграция с агентом в один пункт</li>
           </ul>
           <span class="tag">non-TTY fallback: работает и через pipe</span>
         </div>
@@ -471,20 +474,22 @@
           <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ttl">Claude Code — сессия агента</span></div>
           <div class="term-body">
 <div class="line" data-role="out"><span class="c-blue">●</span> Использую скилл <span class="c-amber">develop</span>…</div>
-<div class="line" data-role="out"><span class="c-muted">  ⎿  hook: PostToolUse → tamagotchi</span></div>
+<div class="line" data-role="out"><span class="c-muted">  ⎿  hook: PostToolUse (Skill) → tamagotchi</span></div>
 <div class="line" data-role="out"> </div>
 <div class="line" data-role="out"><span class="c-amber">🦊 Барсик покормлен!</span></div>
-<div class="line" data-role="out">   сытость 82/100  😋 сыт   ✨ личный рекорд!</div>
+<div class="line" data-role="out">   сытость 82/100  😋 сыт   🔥 3 дн. ✨</div>
 <div class="line" data-role="out">   стадия: 🦊 Зверь   использований: 13</div>
-<div class="line" data-role="out"><span class="c-green">💡 Открой приложение (bin/tamagotchi), чтобы посмотреть за питомцами.</span></div>
+<div class="line" data-role="out"><span class="c-green">💡 Открой приложение (bin/tamagotchi), чтобы посмотреть за состоянием питомцев.</span></div>
           </div>
         </div>
         <div class="demo-note">
-          <h3>Хуки Claude Code</h3>
-          <p>Вызвал скилл — в консоль агента прилетает карточка привязанного питомца. В конце сессии <code>session-end</code> подводит итог: кормёжка + стрик.</p>
+          <h3>Три хука Claude Code</h3>
+          <p>Вызвал скилл — в консоль агента прилетает карточка привязанного питомца через <code>systemMessage</code>. В конце сессии подводится итог: кормёжка + стрик.</p>
           <ul>
-            <li>Главный инвариант: <b>хук никогда не роняет агента</b></li>
-            <li>Любая ошибка → в лог, выход всегда <code>exit 0</code></li>
+            <li><code>PostToolUse</code> · вызов инструмента Skill</li>
+            <li><code>UserPromptSubmit</code> · слэш-вызов <code>/skill</code></li>
+            <li><code>SessionEnd</code> · итог: еда, стрик, голод по таймауту</li>
+            <li>Инвариант: <b>хук никогда не роняет агента</b> → <code>exit 0</code></li>
           </ul>
           <span class="tag">сценарий 3: интеграция с агентом</span>
         </div>
@@ -506,7 +511,7 @@
           <div class="legend">
             <div class="row"><span class="em">😋</span> ≥ 70 <small>&nbsp;сыт</small></div>
             <div class="row"><span class="em">🙂</span> ≥ 40 <small>&nbsp;норм</small></div>
-            <div class="row"><span class="em">😟</span> ≥ 15 <small>&nbsp;голодает</small></div>
+            <div class="row"><span class="em">😟</span> ≥ 15 <small>&nbsp;голоден</small></div>
             <div class="row"><span class="em">😫</span> &lt; 15 <small>&nbsp;очень голоден</small></div>
           </div>
         </div>
@@ -666,7 +671,7 @@ async function playTerm(term,token){
 async function playMenu(menu,token){
   const items=[...menu.querySelectorAll('li')];
   if(reduce){items[0].classList.add('sel');return;}
-  const seq=[0,1,2,3,2,1,0]; // wander like arrow navigation
+  const seq=[0,1,2,3,4,3,2,1,0]; // wander like arrow navigation
   for(const i of seq){
     if(token!==runToken)return;
     items.forEach(it=>it.classList.remove('sel'));
