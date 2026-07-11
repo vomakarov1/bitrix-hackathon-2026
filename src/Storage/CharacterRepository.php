@@ -130,8 +130,17 @@ final class CharacterRepository implements AppCharacterRepositoryInterface, TuiC
                 throw new \RuntimeException("Cannot acquire exclusive lock: {$lockPath}");
             }
 
-            $records = $this->readRecordsRaw();
-            $records = $fn($records);
+            $before = $this->readRecordsRaw();
+            $records = $fn($before);
+
+            // Защита от затирания: пустой список поверх пустого файла не
+            // персистим. Если чтение по любой причине дало [] (файла ещё нет,
+            // транзиентный сбой чтения), запись [] превратила бы сбой в
+            // необратимую потерю всех питомцев — вместо этого no-op.
+            if ($before === [] && $records === []) {
+                return;
+            }
+
             $this->writeRecordsRaw($records);
         } finally {
             flock($lockHandle, LOCK_UN);
@@ -155,7 +164,9 @@ final class CharacterRepository implements AppCharacterRepositoryInterface, TuiC
 
         $decoded = json_decode($content, true);
         if (!is_array($decoded) || !array_is_list($decoded)) {
-            return [];
+            // Битый JSON — это НЕ «нет питомцев»: молчаливый [] приводил бы к
+            // тому, что следующий mutate() перезапишет файл и потеряет данные.
+            throw new \RuntimeException("Corrupted {$this->filePath()}: not a valid JSON list.");
         }
 
         return array_values($decoded);

@@ -59,4 +59,25 @@ final class HookInput
     {
         return $this->toolName() === 'Skill' && $this->skill() !== null;
     }
+
+    /**
+     * Bare-имя скилла из промпта вида `/maestro напиши 1` (UserPromptSubmit).
+     *
+     * Когда пользователь сам печатает `/скилл`, Claude Code подставляет скилл в
+     * промпт напрямую, БЕЗ вызова инструмента Skill — PostToolUse не срабатывает.
+     * Поэтому слэш-вызовы ловим на UserPromptSubmit, парся `prompt`.
+     * Namespaced-форму `plugin:skill` приводим к bare-имени (часть после `:`).
+     */
+    public function promptSkill(): ?string
+    {
+        $prompt = $this->payload['prompt'] ?? null;
+        if (!is_string($prompt) || !preg_match('#^/([\w:-]+)#u', ltrim($prompt), $m)) {
+            return null;
+        }
+
+        $name = $m[1];
+        $colon = strrpos($name, ':');
+
+        return $colon === false ? $name : (substr($name, $colon + 1) ?: null);
+    }
 }

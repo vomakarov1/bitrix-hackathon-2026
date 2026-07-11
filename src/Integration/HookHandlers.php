@@ -44,12 +44,42 @@ final class HookHandlers
             $pet = $this->feeding->recordSkillUsage($sessionId, (string) $in->skill());
             if ($pet !== null) {
                 $card = $this->view->render($pet, $this->clock->today());
-                fwrite(STDOUT, $this->emitCard($card));
+                fwrite(STDOUT, $this->emitCard($card, 'PostToolUse'));
             }
 
             return 0;
         } catch (\Throwable $e) {
             $this->log->write('tool-use', $e);
+
+            return 0;
+        }
+    }
+
+    /**
+     * UserPromptSubmit: слэш-вызов скилла пользователем (`/maestro …`) не
+     * проходит через инструмент Skill, поэтому кормим питомца прямо отсюда.
+     */
+    public function handlePrompt(): int
+    {
+        try {
+            $this->sessions->pruneExpired(Constants::SESSION_TTL_HOURS, $this->clock->now());
+
+            $in = HookInput::fromStdin();
+            $sessionId = $in->sessionId();
+            $skill = $in->promptSkill();
+            if ($sessionId === null || $skill === null) {
+                return 0;
+            }
+
+            $pet = $this->feeding->recordSkillUsage($sessionId, $skill);
+            if ($pet !== null) {
+                $card = $this->view->render($pet, $this->clock->today());
+                fwrite(STDOUT, $this->emitCard($card, 'UserPromptSubmit'));
+            }
+
+            return 0;
+        } catch (\Throwable $e) {
+            $this->log->write('prompt', $e);
 
             return 0;
         }
@@ -80,7 +110,7 @@ final class HookHandlers
      * debug-лог). `hookSpecificOutput.additionalContext` — для контекста Claude.
      * `suppressOutput: true` убирает дублирование карточки в debug-лог/транскрипт.
      */
-    private function emitCard(string $card): string
+    private function emitCard(string $card, string $eventName): string
     {
         // systemMessage — единственный канал, который Claude Code показывает
         // ПОЛЬЗОВАТЕЛЮ. additionalContext дублирует карточку в контекст Claude.
@@ -88,7 +118,7 @@ final class HookHandlers
         return json_encode([
             'systemMessage' => $card,
             'hookSpecificOutput' => [
-                'hookEventName' => 'PostToolUse',
+                'hookEventName' => $eventName,
                 'additionalContext' => $card,
             ],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n";

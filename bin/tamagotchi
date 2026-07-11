@@ -66,6 +66,7 @@ function tamagotchi_help(): string
       create --skill=<s> --name=<n> [--type=<t>]    создать питомца
       delete <id>                                   удалить питомца
       hook:tool-use                                 внутренний обработчик хука PostToolUse
+      hook:prompt                                   внутренний обработчик хука UserPromptSubmit
       hook:session-end                              внутренний обработчик хука SessionEnd
       help                                          показать эту справку
 
@@ -142,6 +143,9 @@ switch ($command) {
 
     case 'hook:tool-use':
         exit($hooks->handleToolUse());
+
+    case 'hook:prompt':
+        exit($hooks->handlePrompt());
 
     case 'hook:session-end':
         exit($hooks->handleSessionEnd());

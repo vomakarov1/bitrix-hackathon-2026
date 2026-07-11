@@ -20,6 +20,7 @@ final class HooksInstaller
     public function install(string $binPath): void
     {
         $cmdTool = PHP_BINARY.' '.escapeshellarg($binPath).' hook:tool-use';
+        $cmdPrompt = PHP_BINARY.' '.escapeshellarg($binPath).' hook:prompt';
         $cmdEnd = PHP_BINARY.' '.escapeshellarg($binPath).' hook:session-end';
 
         $settingsPath = $this->paths->settingsPath();
@@ -30,6 +31,9 @@ final class HooksInstaller
         // Так хук срабатывает ТОЛЬКО на использование скиллов, а не на каждый
         // инструмент (Bash/Read/…), — без лишнего оверхеда.
         $this->ensureHookEntry($settings, 'PostToolUse', 'Skill', $cmdTool, $binPath, 'hook:tool-use');
+        // Слэш-вызов скилла пользователем (`/maestro …`) НЕ проходит через
+        // инструмент Skill — ловим его на UserPromptSubmit (hook:prompt).
+        $this->ensureHookEntry($settings, 'UserPromptSubmit', '', $cmdPrompt, $binPath, 'hook:prompt');
         $this->ensureHookEntry($settings, 'SessionEnd', '', $cmdEnd, $binPath, 'hook:session-end');
 
         $this->writeAtomic($settingsPath, $settings);
